@@ -182,13 +182,13 @@ T toDecScale(char* a, int scale, T r, int length) {
 	
 	if(a[0] == '-')
 	{
-		double temp = pow(2, sizeof(T)*8 - 1);
-		//result = -result;
-		__asm
-		{
-		 	MOV zmm0, (temp);
-		 	XOR result, mm0;
-		}
+		//double temp = pow(2, sizeof(T)*8 - 1);
+		result = -result;
+		// __asm
+		// {
+		//  	MOV mm0, (temp);
+		//  	XOR result, mm0;
+		// }
 	}
 	return result;   
 }
@@ -354,8 +354,16 @@ T invertBits(T &num)
 	to = input("\nIndex of the second bit: ", -1, sizeof(num)*8);
 	
 	if (from < to)
-		std::swap(from, to);
-	
+	{
+		__asm
+		{
+			MOV eax, from
+			MOV ebx, to
+			MOV from, ebx
+			MOV to, eax
+		}
+		//std::swap(from, to);
+	}
 	for (int i = to; i <= from; i++)  
        num = (num ^ ((T)1 << i));  
 
@@ -428,6 +436,8 @@ void modulation(char* in, T type)
 		gotoxy(x += batch, y);
 	}
 	gotoxy(0, yStart + 2);
+
+	delete[] modulArray, modulArrayGraph;
 }
 
 void clearLines(int y, int len)
@@ -571,7 +581,8 @@ void drawSound()
 			temp = 0;
 		}
 		x = 0;
-		clearScreen(X_MAX, Y_MAX + 5);
+		//clearScreen(X_MAX, Y_MAX + 5);
+		system("cls");
 	}
 }
 
@@ -585,6 +596,7 @@ void typenameInput(T &value, int type)
 
 	std::cout << "Data type: " << typeid(value).name();
 	array = input(scale, type);
+	
 	int length = getLength(array);
 
 	value = toDecScale(array, scale, value, length); 
@@ -604,6 +616,8 @@ void typenameInput(T &value, int type)
 		repeat = getch();
 	}
 	modulation(toBinScale(value), value);
+
+	delete[] array;
 }
 
 template<typename T>
@@ -653,6 +667,8 @@ void doubleFloatInput(T &value, int type)
 		modulation(toBinScale(l_union), l_union);
 	else if(type == 5)
 		modulation(toBinScale(i_union), i_union);
+
+	delete[] array;
 }
 
 int main() {	
